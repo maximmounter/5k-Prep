@@ -55,10 +55,6 @@ header {
   max-width: 800px;
   margin: 0 auto;
   padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
 }
 
 .logo {
@@ -87,11 +83,6 @@ header {
   text-transform: uppercase;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 
 .date-badge {
   background: var(--primary-light);

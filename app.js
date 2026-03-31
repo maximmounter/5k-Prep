@@ -17,12 +17,10 @@ function saveData(entries) {
 
 // ── State ─────────────────────────────────────────────────────
 let entries = loadData();
-let currentView = 'dad'; // 'dad' | 'family'
 
 // ── DOM refs ──────────────────────────────────────────────────
 const dadView       = document.getElementById('dadView');
 const familyView    = document.getElementById('familyView');
-const switchViewBtn = document.getElementById('switchViewBtn');
 const todayDateEl   = document.getElementById('todayDate');
 const timeOfDayEl   = document.getElementById('timeOfDay');
 const streakEl      = document.getElementById('streakCount');
@@ -248,24 +246,7 @@ function updateStats() {
   statPending.textContent   = pending;
 }
 
-// ── View Switch ───────────────────────────────────────────────
-switchViewBtn.addEventListener('click', () => {
-  if (currentView === 'dad') {
-    currentView = 'family';
-    dadView.classList.remove('active');
-    familyView.classList.add('active');
-    switchViewBtn.textContent = '🧍 Dad\'s View';
-    switchViewBtn.classList.add('active-view');
-    renderApprovals();
-    updateStats();
-  } else {
-    currentView = 'dad';
-    familyView.classList.remove('active');
-    dadView.classList.add('active');
-    switchViewBtn.textContent = '👨‍👧 Family View';
-    switchViewBtn.classList.remove('active-view');
-  }
-});
+
 
 // ── Toast ─────────────────────────────────────────────────────
 let toastTimer;
