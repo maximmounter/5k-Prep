@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dad's Health Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🥦</span>
+        <div>
+          <h1>Dad's Health Hub</h1>
+          <p class="tagline">Track · Log · Stay on track</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost" id="switchViewBtn">👨‍👧 Family View</button>
+        <div class="date-badge" id="todayDate"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWS -->
+  <main>
+
+    <!-- ===== DAD'S VIEW ===== -->
+    <div id="dadView" class="view active">
+
+      <section class="greeting-card">
+        <div class="greeting-text">
+          <h2>Good <span id="timeOfDay">morning</span>, Dad! 👋</h2>
+          <p>Log your stats below. The family's cheering you on!</p>
+        </div>
+        <div class="streak-badge">
+          <span class="streak-num" id="streakCount">0</span>
+          <span class="streak-label">day streak 🔥</span>
+        </div>
+      </section>
+
+      <!-- TODAY'S LOG FORM -->
+      <section class="card log-form">
+        <h3 class="card-title">📋 Today's Log</h3>
+
+        <div class="form-grid">
+
+          <!-- Weight Morning -->
+          <div class="form-group">
+            <label for="weightMorning">
+              <span class="label-icon">🌅</span> Morning Weight
+            </label>
+            <div class="input-wrap">
+              <input type="number" id="weightMorning" placeholder="e.g. 185" step="0.1" min="50" max="500"/>
+              <span class="unit">lbs</span>
+            </div>
+          </div>
+
+          <!-- Weight Night -->
+          <div class="form-group">
+            <label for="weightNight">
+              <span class="label-icon">🌙</span> Night Weight
+            </label>
+            <div class="input-wrap">
+              <input type="number" id="weightNight" placeholder="e.g. 187" step="0.1" min="50" max="500"/>
+              <span class="unit">lbs</span>
+            </div>
+          </div>
+
+          <!-- Calories -->
+          <div class="form-group full-width">
+            <label for="calories">
+              <span class="label-icon">🍽️</span> Total Calories Today
+            </label>
+            <div class="input-wrap">
+              <input type="number" id="calories" placeholder="e.g. 1800" step="10" min="0" max="10000"/>
+              <span class="unit">kcal</span>
+            </div>
+            <div class="calorie-bar-wrap">
+              <div class="calorie-bar" id="calorieBar"></div>
+              <span class="calorie-label" id="calorieLabel"></span>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group full-width">
+            <label for="notes">
+              <span class="label-icon">📝</span> Notes (optional)
+            </label>
+            <textarea id="notes" placeholder="How did you feel today? Any meals or exercise to note?" rows="3"></textarea>
+          </div>
+
+        </div>
+
+        <button class="btn btn-primary" id="submitLog">Submit Today's Log ✅</button>
+        <p class="submit-hint" id="submitMsg"></p>
+      </section>
+
+      <!-- HISTORY -->
+      <section class="card">
+        <h3 class="card-title">📅 Recent History</h3>
+        <div id="historyList" class="history-list">
+          <p class="empty-state">No entries yet. Log your first day above!</p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ===== FAMILY VIEW ===== -->
+    <div id="familyView" class="view">
+
+      <section class="greeting-card family-greeting">
+        <div class="greeting-text">
+          <h2>Family Dashboard 👨‍👧</h2>
+          <p>Review and approve Dad's daily entries here.</p>
+        </div>
+      </section>
+
+      <!-- SUMMARY STATS -->
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <span class="stat-icon">📊</span>
+          <span class="stat-value" id="statAvgCal">—</span>
+          <span class="stat-label">Avg Calories</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">⚖️</span>
+          <span class="stat-value" id="statAvgWeight">—</span>
+          <span class="stat-label">Avg Morning Weight</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">✅</span>
+          <span class="stat-value" id="statApproved">0</span>
+          <span class="stat-label">Approved Entries</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">⏳</span>
+          <span class="stat-value" id="statPending">0</span>
+          <span class="stat-label">Pending Review</span>
+        </div>
+      </div>
+
+      <!-- APPROVAL LIST -->
+      <section class="card">
+        <h3 class="card-title">🗂️ Entries to Review</h3>
+        <div id="approvalList" class="approval-list">
+          <p class="empty-state">Nothing to review yet!</p>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
