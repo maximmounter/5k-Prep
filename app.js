@@ -344,7 +344,113 @@ function updateStats() {
 
 
 
-// ── Toast ─────────────────────────────────────────────────────
+// ── PIN Modal & Fab ───────────────────────────────────────────
+const MAYA_PIN      = '4144';
+const APPROVAL_KEY  = 'mayaApprovalDate';
+const fabCheck      = document.getElementById('fabCheck');
+const pinOverlay    = document.getElementById('pinOverlay');
+const pinClose      = document.getElementById('pinClose');
+const pinSubtitle   = document.getElementById('pinSubtitle');
+const pinDots       = document.querySelectorAll('.pin-dot');
+
+let pinEntry = '';
+
+function alreadyApprovedToday() {
+  return localStorage.getItem(APPROVAL_KEY) === todayKey();
+}
+
+fabCheck.addEventListener('click', () => {
+  if (alreadyApprovedToday()) {
+    showToast('✅ Already approved today! Great job, Dad!');
+    return;
+  }
+  openPinModal();
+});
+
+pinClose.addEventListener('click', closePinModal);
+pinOverlay.addEventListener('click', e => { if (e.target === pinOverlay) closePinModal(); });
+
+function openPinModal() {
+  pinEntry = '';
+  updateDots();
+  pinSubtitle.textContent = "Enter your PIN to approve today's entry";
+  pinSubtitle.className = 'pin-subtitle';
+  pinOverlay.classList.add('show');
+}
+
+function closePinModal() {
+  pinOverlay.classList.remove('show');
+  pinEntry = '';
+  updateDots();
+}
+
+document.querySelectorAll('.pin-key').forEach(key => {
+  key.addEventListener('click', () => {
+    const val = key.dataset.val;
+    if (val === 'clear') {
+      pinEntry = '';
+    } else if (val === 'del') {
+      pinEntry = pinEntry.slice(0, -1);
+    } else if (pinEntry.length < 4) {
+      pinEntry += val;
+    }
+    updateDots();
+    if (pinEntry.length === 4) checkPin();
+  });
+});
+
+function updateDots() {
+  pinDots.forEach((dot, i) => {
+    dot.classList.toggle('filled', i < pinEntry.length);
+    dot.classList.remove('error', 'success');
+  });
+}
+
+function checkPin() {
+  if (pinEntry === MAYA_PIN) {
+    // ✅ Correct!
+    pinDots.forEach(d => { d.classList.remove('filled'); d.classList.add('success'); });
+    pinSubtitle.textContent = '✅ Approved! Great job, Dad! 🎉';
+    pinSubtitle.className = 'pin-subtitle success';
+
+    // Mark today as approved
+    localStorage.setItem(APPROVAL_KEY, todayKey());
+
+    // Approve today's entry in the log if it exists
+    const todayIdx = entries.findIndex(e => e.date === todayKey());
+    if (todayIdx >= 0) {
+      entries[todayIdx].status = 'approved';
+      entries[todayIdx].reviewedAt = new Date().toISOString();
+      saveData(entries);
+      updateStats();
+      renderApprovals();
+    }
+
+    // Bump streak by 1 for Maya's approval
+    const current = parseInt(streakEl.textContent) || 0;
+    streakEl.textContent = current + 1;
+
+    // Close modal after a short celebration pause
+    setTimeout(() => {
+      closePinModal();
+      showToast('🎉 Maya approved! +1 streak for Dad!');
+    }, 1400);
+
+  } else {
+    // ❌ Wrong PIN
+    pinDots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
+    pinSubtitle.textContent = 'Wrong PIN, try again!';
+    pinSubtitle.className = 'pin-subtitle error';
+    setTimeout(() => {
+      pinEntry = '';
+      updateDots();
+      pinSubtitle.textContent = "Enter your PIN to approve today's entry";
+      pinSubtitle.className = 'pin-subtitle';
+    }, 900);
+  }
+}
+
+
 let toastTimer;
 function showToast(msg) {
   toast.textContent = msg;

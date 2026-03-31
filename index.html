@@ -168,6 +168,40 @@
   </main>
 
   <div class="toast" id="toast"></div>
+
+  <!-- FLOATING CHECKMARK BUTTON -->
+  <button class="fab-check" id="fabCheck" title="Maya's Approval">&#10003;</button>
+
+  <!-- PIN MODAL -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-modal">
+      <button class="pin-close" id="pinClose">&times;</button>
+      <div class="pin-icon">🔐</div>
+      <h2 class="pin-title">Maya's PIN</h2>
+      <p class="pin-subtitle" id="pinSubtitle">Enter your PIN to approve today's entry</p>
+      <div class="pin-dots" id="pinDots">
+        <span class="pin-dot"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-dot"></span>
+      </div>
+      <div class="pin-pad">
+        <button class="pin-key" data-val="1">1</button>
+        <button class="pin-key" data-val="2">2</button>
+        <button class="pin-key" data-val="3">3</button>
+        <button class="pin-key" data-val="4">4</button>
+        <button class="pin-key" data-val="5">5</button>
+        <button class="pin-key" data-val="6">6</button>
+        <button class="pin-key" data-val="7">7</button>
+        <button class="pin-key" data-val="8">8</button>
+        <button class="pin-key" data-val="9">9</button>
+        <button class="pin-key pin-key-clear" data-val="clear">✕</button>
+        <button class="pin-key" data-val="0">0</button>
+        <button class="pin-key pin-key-del" data-val="del">⌫</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
