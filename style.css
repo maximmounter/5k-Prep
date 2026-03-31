@@ -291,6 +291,7 @@ label {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 input[type="number"],
@@ -299,13 +300,15 @@ textarea {
   font-size: 1rem;
   font-weight: 600;
   width: 100%;
-  padding: 12px 50px 12px 14px;
+  min-width: 0;
+  padding: 12px 52px 12px 14px;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface2);
   color: var(--text);
   transition: border-color 0.18s, box-shadow 0.18s;
   outline: none;
+  box-sizing: border-box;
 }
 
 textarea {
@@ -359,19 +362,23 @@ textarea:focus {
    ============================ */
 .mood-picker {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-top: 4px;
+  flex-wrap: wrap;
 }
 
 .mood-btn {
-  font-size: 2rem;
+  font-size: 1.7rem;
   background: var(--surface2);
   border: 2px solid var(--border);
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   cursor: pointer;
   transition: transform 0.15s, border-color 0.15s, background 0.15s;
   line-height: 1;
+  flex: 1 1 0;
+  min-width: 44px;
+  text-align: center;
 }
 
 .mood-btn:hover {
