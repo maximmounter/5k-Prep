@@ -354,6 +354,85 @@ textarea:focus {
   display: block;
 }
 
+/* ============================
+   MOOD PICKER
+   ============================ */
+.mood-picker {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.mood-btn {
+  font-size: 2rem;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.mood-btn:hover {
+  transform: scale(1.15);
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.mood-btn.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(232,115,58,0.25);
+}
+
+.mood-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: block;
+  min-height: 18px;
+}
+
+/* ============================
+   CHART
+   ============================ */
+.chart-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 16px;
+  margin-top: -10px;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 220px;
+  margin-bottom: 12px;
+}
+
+.chart-legend {
+  display: flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  gap: 6px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================
+   SUBMIT HINT
+   ============================ */
 .submit-hint {
   text-align: center;
   font-size: 0.83rem;

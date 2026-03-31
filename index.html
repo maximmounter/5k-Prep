@@ -6,6 +6,7 @@
   <title>Dad's Health Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -23,10 +24,7 @@
     </div>
   </header>
 
-  <!-- MAIN VIEWS -->
   <main>
-
-    <!-- ===== DAD'S VIEW ===== -->
     <div id="dadView" class="view active">
 
       <section class="greeting-card">
@@ -83,12 +81,25 @@
             </div>
           </div>
 
+          <!-- Mood -->
+          <div class="form-group full-width">
+            <label><span class="label-icon">😊</span> How do you feel today?</label>
+            <div class="mood-picker" id="moodPicker">
+              <button type="button" class="mood-btn" data-mood="1" title="Terrible">😞</button>
+              <button type="button" class="mood-btn" data-mood="2" title="Bad">😕</button>
+              <button type="button" class="mood-btn" data-mood="3" title="Okay">😐</button>
+              <button type="button" class="mood-btn" data-mood="4" title="Good">🙂</button>
+              <button type="button" class="mood-btn" data-mood="5" title="Great">😄</button>
+            </div>
+            <span class="mood-label" id="moodLabel">Tap a face to log your mood</span>
+          </div>
+
           <!-- Notes -->
           <div class="form-group full-width">
             <label for="notes">
               <span class="label-icon">📝</span> Notes (optional)
             </label>
-            <textarea id="notes" placeholder="How did you feel today? Any meals or exercise to note?" rows="3"></textarea>
+            <textarea id="notes" placeholder="Any meals or exercise to note?" rows="3"></textarea>
           </div>
 
         </div>
@@ -97,11 +108,23 @@
         <p class="submit-hint" id="submitMsg"></p>
       </section>
 
-
+      <!-- MOOD & CALORIES CHART -->
+      <section class="card">
+        <h3 class="card-title">📈 Mood vs. Calories</h3>
+        <p class="chart-subtitle">See how eating well affects how you feel!</p>
+        <div class="chart-wrap">
+          <canvas id="moodChart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-dot" style="background:#e8733a"></span> Calories (÷100)
+          <span class="legend-dot" style="background:#4caf7d; margin-left:16px"></span> Mood (1–5)
+        </div>
+        <p id="chartEmpty" class="empty-state" style="display:none">Log a few days to see your chart!</p>
+      </section>
 
     </div>
 
-    <!-- ===== FAMILY VIEW ===== -->
+    <!-- FAMILY VIEW -->
     <div id="familyView" class="view">
 
       <section class="greeting-card family-greeting">
@@ -111,7 +134,6 @@
         </div>
       </section>
 
-      <!-- SUMMARY STATS -->
       <div class="stats-row" id="statsRow">
         <div class="stat-card">
           <span class="stat-icon">📊</span>
@@ -126,16 +148,15 @@
         <div class="stat-card">
           <span class="stat-icon">✅</span>
           <span class="stat-value" id="statApproved">0</span>
-          <span class="stat-label">Approved Entries</span>
+          <span class="stat-label">Approved</span>
         </div>
         <div class="stat-card">
           <span class="stat-icon">⏳</span>
           <span class="stat-value" id="statPending">0</span>
-          <span class="stat-label">Pending Review</span>
+          <span class="stat-label">Pending</span>
         </div>
       </div>
 
-      <!-- APPROVAL LIST -->
       <section class="card">
         <h3 class="card-title">🗂️ Entries to Review</h3>
         <div id="approvalList" class="approval-list">
@@ -144,12 +165,9 @@
       </section>
 
     </div>
-
   </main>
 
-  <!-- TOAST NOTIFICATION -->
   <div class="toast" id="toast"></div>
-
   <script src="app.js"></script>
 </body>
 </html>

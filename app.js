@@ -17,6 +17,8 @@ function saveData(entries) {
 
 // ── State ─────────────────────────────────────────────────────
 let entries = loadData();
+let selectedMood = null;
+let moodChart = null;
 
 // ── DOM refs ──────────────────────────────────────────────────
 const dadView       = document.getElementById('dadView');
@@ -31,6 +33,9 @@ const calorieInput  = document.getElementById('calories');
 const calorieBar    = document.getElementById('calorieBar');
 const calorieLabel  = document.getElementById('calorieLabel');
 const toast         = document.getElementById('toast');
+const moodPicker    = document.getElementById('moodPicker');
+const moodLabel     = document.getElementById('moodLabel');
+const chartEmpty    = document.getElementById('chartEmpty');
 
 // Stats
 const statAvgCal    = document.getElementById('statAvgCal');
@@ -42,9 +47,11 @@ const statPending   = document.getElementById('statPending');
 function init() {
   setDateHeader();
   setGreeting();
+  setupMoodPicker();
   renderApprovals();
   updateStats();
   checkStreaks();
+  renderChart();
 }
 
 // ── Date & Greeting ───────────────────────────────────────────
@@ -126,6 +133,7 @@ submitBtn.addEventListener('click', () => {
     weightMorning: weightMorning || null,
     weightNight:   weightNight   || null,
     calories:      calories      || null,
+    mood:          selectedMood  || null,
     notes:         notes         || '',
     status:        'pending',
     submittedAt:   new Date().toISOString(),
@@ -144,6 +152,7 @@ submitBtn.addEventListener('click', () => {
   renderApprovals();
   updateStats();
   checkStreaks();
+  renderChart();
   submitMsg.textContent = '✅ Submitted! Waiting for family review...';
   setTimeout(() => submitMsg.textContent = '', 4000);
 });
@@ -155,8 +164,94 @@ function clearForm() {
   document.getElementById('notes').value         = '';
   calorieBar.style.width = '0%';
   calorieLabel.textContent = '';
+  selectedMood = null;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  moodLabel.textContent = 'Tap a face to log your mood';
 }
 
+// ── Mood Picker ───────────────────────────────────────────────
+const moodNames = { 1: 'Terrible 😞', 2: 'Bad 😕', 3: 'Okay 😐', 4: 'Good 🙂', 5: 'Great 😄' };
+
+function setupMoodPicker() {
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedMood = parseInt(btn.dataset.mood);
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      moodLabel.textContent = `Feeling: ${moodNames[selectedMood]}`;
+    });
+  });
+}
+
+// ── Chart ─────────────────────────────────────────────────────
+function renderChart() {
+  const canvas = document.getElementById('moodChart');
+  const withData = [...entries].reverse().filter(e => e.mood || e.calories).slice(-14);
+
+  if (withData.length === 0) {
+    canvas.style.display = 'none';
+    chartEmpty.style.display = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  chartEmpty.style.display = 'none';
+
+  const labels  = withData.map(e => {
+    const d = new Date(e.date + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  });
+  const calData  = withData.map(e => e.calories ? +(e.calories / 100).toFixed(1) : null);
+  const moodData = withData.map(e => e.mood || null);
+
+  if (moodChart) moodChart.destroy();
+
+  moodChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Calories (÷100)',
+          data: calData,
+          borderColor: '#e8733a',
+          backgroundColor: 'rgba(232,115,58,0.12)',
+          pointBackgroundColor: '#e8733a',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 5,
+          spanGaps: true,
+        },
+        {
+          label: 'Mood (1–5)',
+          data: moodData,
+          borderColor: '#4caf7d',
+          backgroundColor: 'rgba(76,175,125,0.12)',
+          pointBackgroundColor: '#4caf7d',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 5,
+          spanGaps: true,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { family: 'Nunito', weight: '700' }, color: '#8a7a65' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { family: 'Nunito', weight: '700' }, color: '#8a7a65' }
+        }
+      }
+    }
+  });
+}
 
 // ── Render Approvals (Family View) ────────────────────────────
 function renderApprovals() {
@@ -173,6 +268,7 @@ function renderApprovals() {
     if (e.calories)      pills.push(`🍽️ ${e.calories} kcal`);
     if (e.weightMorning) pills.push(`🌅 Morning: ${e.weightMorning} lbs`);
     if (e.weightNight)   pills.push(`🌙 Night: ${e.weightNight} lbs`);
+    if (e.mood)          pills.push(`${['','😞','😕','😐','🙂','😄'][e.mood]} Mood: ${['','Terrible','Bad','Okay','Good','Great'][e.mood]}`);
 
     const statusChip = `<span class="status-chip ${e.status}">${e.status}</span>`;
 
