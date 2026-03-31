@@ -26,7 +26,6 @@ const switchViewBtn = document.getElementById('switchViewBtn');
 const todayDateEl   = document.getElementById('todayDate');
 const timeOfDayEl   = document.getElementById('timeOfDay');
 const streakEl      = document.getElementById('streakCount');
-const historyList   = document.getElementById('historyList');
 const approvalList  = document.getElementById('approvalList');
 const submitBtn     = document.getElementById('submitLog');
 const submitMsg     = document.getElementById('submitMsg');
@@ -45,7 +44,6 @@ const statPending   = document.getElementById('statPending');
 function init() {
   setDateHeader();
   setGreeting();
-  renderHistory();
   renderApprovals();
   updateStats();
   checkStreaks();
@@ -145,7 +143,6 @@ submitBtn.addEventListener('click', () => {
 
   saveData(entries);
   clearForm();
-  renderHistory();
   renderApprovals();
   updateStats();
   checkStreaks();
@@ -162,39 +159,6 @@ function clearForm() {
   calorieLabel.textContent = '';
 }
 
-// ── Render History (Dad's View) ───────────────────────────────
-function renderHistory() {
-  if (entries.length === 0) {
-    historyList.innerHTML = '<p class="empty-state">No entries yet. Log your first day above!</p>';
-    return;
-  }
-
-  historyList.innerHTML = entries.slice(0, 7).map(e => {
-    const d = new Date(e.date + 'T00:00:00');
-    const month = d.toLocaleDateString('en-US', { month: 'short' });
-    const day   = d.getDate();
-
-    const pills = [];
-    if (e.calories)      pills.push(`🍽️ ${e.calories} kcal`);
-    if (e.weightMorning) pills.push(`🌅 ${e.weightMorning} lbs`);
-    if (e.weightNight)   pills.push(`🌙 ${e.weightNight} lbs`);
-
-    const statusIcon = e.status === 'approved' ? '✅'
-                     : e.status === 'rejected'  ? '❌'
-                     : '⏳';
-
-    return `
-      <div class="history-item">
-        <div class="history-date">${month}<br/>${day}</div>
-        <div class="history-details">
-          ${pills.map(p => `<span class="stat-pill">${p}</span>`).join('')}
-          ${e.notes ? `<span class="stat-pill" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${e.notes}</span>` : ''}
-        </div>
-        <div class="history-status" title="${e.status}">${statusIcon}</div>
-      </div>
-    `;
-  }).join('');
-}
 
 // ── Render Approvals (Family View) ────────────────────────────
 function renderApprovals() {
@@ -245,7 +209,6 @@ function approveEntry(idx) {
   entries[idx].reviewedAt = new Date().toISOString();
   saveData(entries);
   renderApprovals();
-  renderHistory();
   updateStats();
   showToast('✅ Entry approved! Way to go, Dad!');
 }
@@ -255,7 +218,6 @@ function rejectEntry(idx) {
   entries[idx].reviewedAt = new Date().toISOString();
   saveData(entries);
   renderApprovals();
-  renderHistory();
   updateStats();
   showToast('❌ Entry flagged. Consider a chat with Dad.');
 }
@@ -265,7 +227,6 @@ function resetEntry(idx) {
   delete entries[idx].reviewedAt;
   saveData(entries);
   renderApprovals();
-  renderHistory();
   updateStats();
   showToast('↩ Status reset to pending.');
 }
@@ -303,7 +264,6 @@ switchViewBtn.addEventListener('click', () => {
     dadView.classList.add('active');
     switchViewBtn.textContent = '👨‍👧 Family View';
     switchViewBtn.classList.remove('active-view');
-    renderHistory();
   }
 });
 
