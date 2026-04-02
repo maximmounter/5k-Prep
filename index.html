@@ -24,13 +24,22 @@
     </div>
   </header>
 
+  <!-- TAB BAR -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="daily">📋 Daily Log</button>
+    <button class="tab-btn" data-tab="cheat">🍕 Cheat Day</button>
+    <button class="tab-btn" data-tab="charts">📈 Charts</button>
+  </nav>
+
   <main>
-    <div id="dadView" class="view active">
+
+    <!-- ===== DAILY LOG TAB ===== -->
+    <div id="tab-daily" class="tab-content active">
 
       <section class="greeting-card">
         <div class="greeting-text">
           <h2>Good <span id="timeOfDay">morning</span>, Dad! 👋</h2>
-          <p>Log your stats below. The family's cheering you on!</p>
+          <p>Log your day below. Maya's watching! 👀</p>
         </div>
         <div class="streak-badge">
           <span class="streak-num" id="streakCount">0</span>
@@ -38,46 +47,54 @@
         </div>
       </section>
 
-      <!-- TODAY'S LOG FORM -->
       <section class="card log-form">
         <h3 class="card-title">📋 Today's Log</h3>
 
         <div class="form-grid">
 
-          <!-- Weight Morning -->
-          <div class="form-group">
-            <label for="weightMorning">
-              <span class="label-icon">🌅</span> Morning Weight
-            </label>
+          <!-- Morning Weight -->
+          <div class="form-group full-width">
+            <label for="weightMorning"><span class="label-icon">🌅</span> Morning Weight</label>
             <div class="input-wrap">
               <input type="number" id="weightMorning" placeholder="e.g. 185" step="0.1" min="50" max="500"/>
               <span class="unit">lbs</span>
             </div>
           </div>
 
-          <!-- Weight Night -->
-          <div class="form-group">
-            <label for="weightNight">
-              <span class="label-icon">🌙</span> Night Weight
-            </label>
+          <!-- KM Run Time -->
+          <div class="form-group full-width">
+            <label for="kmTime"><span class="label-icon">🏃</span> 1 km Run Time</label>
             <div class="input-wrap">
-              <input type="number" id="weightNight" placeholder="e.g. 187" step="0.1" min="50" max="500"/>
-              <span class="unit">lbs</span>
+              <input type="number" id="kmTime" placeholder="e.g. 5.5" step="0.1" min="1" max="60"/>
+              <span class="unit">min</span>
+            </div>
+            <span class="field-hint" id="kmHint"></span>
+          </div>
+
+          <!-- Did you exercise? -->
+          <div class="form-group full-width">
+            <label><span class="label-icon">💪</span> Did you exercise today?</label>
+            <div class="toggle-group" id="exerciseToggle">
+              <button type="button" class="toggle-btn" data-val="yes">✅ Yes</button>
+              <button type="button" class="toggle-btn" data-val="no">❌ No</button>
             </div>
           </div>
 
-          <!-- Calories -->
+          <!-- Did you eat well? -->
           <div class="form-group full-width">
-            <label for="calories">
-              <span class="label-icon">🍽️</span> Total Calories Today
-            </label>
-            <div class="input-wrap">
-              <input type="number" id="calories" placeholder="e.g. 1800" step="10" min="0" max="10000"/>
-              <span class="unit">kcal</span>
+            <label><span class="label-icon">🥗</span> Did you eat well today?</label>
+            <div class="toggle-group" id="eatWellToggle">
+              <button type="button" class="toggle-btn" data-val="yes">✅ Yes</button>
+              <button type="button" class="toggle-btn" data-val="no">❌ No</button>
             </div>
-            <div class="calorie-bar-wrap">
-              <div class="calorie-bar" id="calorieBar"></div>
-              <span class="calorie-label" id="calorieLabel"></span>
+          </div>
+
+          <!-- Did you eat junk food? -->
+          <div class="form-group full-width">
+            <label><span class="label-icon">🍔</span> Did you eat junk food today?</label>
+            <div class="toggle-group" id="junkToggle">
+              <button type="button" class="toggle-btn" data-val="yes">😬 Yes</button>
+              <button type="button" class="toggle-btn" data-val="no">😇 No</button>
             </div>
           </div>
 
@@ -96,37 +113,73 @@
 
           <!-- Notes -->
           <div class="form-group full-width">
-            <label for="notes">
-              <span class="label-icon">📝</span> Notes (optional)
-            </label>
-            <textarea id="notes" placeholder="Any meals or exercise to note?" rows="3"></textarea>
+            <label for="notes"><span class="label-icon">📝</span> Notes (optional)</label>
+            <textarea id="notes" placeholder="Anything to note about today?" rows="3"></textarea>
           </div>
 
         </div>
 
-        <button class="btn btn-primary" id="submitLog">Submit Today's Log ✅</button>
+        <div class="pending-notice">⏳ Entries are <strong>pending</strong> until Maya approves with her PIN ✓</div>
+        <button class="btn btn-primary" id="submitLog">Submit Today's Log</button>
         <p class="submit-hint" id="submitMsg"></p>
       </section>
 
-      <!-- MOOD & CALORIES CHART -->
+      <!-- Recent pending banner -->
+      <div id="pendingBanner" class="pending-banner" style="display:none">
+        <span>⏳ Today's entry is waiting for Maya's approval</span>
+      </div>
+
+    </div>
+
+    <!-- ===== CHEAT DAY TAB ===== -->
+    <div id="tab-cheat" class="tab-content">
+
+      <section class="greeting-card cheat-greeting">
+        <div class="greeting-text">
+          <h2>🍕 Saturday Cheat Day!</h2>
+          <p>Add all the foods you saved up this week. You earned it!</p>
+        </div>
+      </section>
+
       <section class="card">
-        <h3 class="card-title">📈 Mood vs. Calories</h3>
-        <p class="chart-subtitle">See how eating well affects how you feel!</p>
-        <div class="chart-wrap">
-          <canvas id="moodChart"></canvas>
+        <h3 class="card-title">🧾 This Week's Cheat List</h3>
+        <div class="cheat-input-row">
+          <input type="text" id="cheatFoodInput" placeholder="e.g. Pepperoni pizza, ice cream..."/>
+          <button class="btn btn-primary" id="addCheatFood" style="width:auto;padding:12px 18px">Add</button>
         </div>
-        <div class="chart-legend">
-          <span class="legend-dot" style="background:#e8733a"></span> Calories (÷100)
-          <span class="legend-dot" style="background:#4caf7d; margin-left:16px"></span> Mood (1–5)
-        </div>
-        <p id="chartEmpty" class="empty-state" style="display:none">Log a few days to see your chart!</p>
+        <ul class="cheat-list" id="cheatList">
+          <li class="empty-state">No cheat foods added yet — stay strong! 💪</li>
+        </ul>
+        <button class="btn btn-ghost" id="clearCheatList" style="margin-top:12px;width:100%">🗑️ Clear List (new week)</button>
       </section>
 
     </div>
 
-    <!-- FAMILY VIEW -->
-    <div id="familyView" class="view">
+    <!-- ===== CHARTS TAB ===== -->
+    <div id="tab-charts" class="tab-content">
 
+      <section class="card">
+        <h3 class="card-title">⚖️ Weight Over Time</h3>
+        <p class="chart-subtitle">Morning weight — going down is the goal!</p>
+        <div class="chart-wrap">
+          <canvas id="weightChart"></canvas>
+        </div>
+        <p id="weightChartEmpty" class="empty-state">Log a few days to see your weight chart!</p>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title">😊 Mood vs. Running Pace</h3>
+        <p class="chart-subtitle">Feel better when you run faster!</p>
+        <div class="chart-wrap">
+          <canvas id="moodChart"></canvas>
+        </div>
+        <p id="moodChartEmpty" class="empty-state">Log a few days to see your mood chart!</p>
+      </section>
+
+    </div>
+
+    <!-- ===== FAMILY VIEW (hidden, toggled by fab) ===== -->
+    <div id="familyView" class="view">
       <section class="greeting-card family-greeting">
         <div class="greeting-text">
           <h2>Family Dashboard 👨‍👧</h2>
@@ -134,16 +187,11 @@
         </div>
       </section>
 
-      <div class="stats-row" id="statsRow">
-        <div class="stat-card">
-          <span class="stat-icon">📊</span>
-          <span class="stat-value" id="statAvgCal">—</span>
-          <span class="stat-label">Avg Calories</span>
-        </div>
+      <div class="stats-row">
         <div class="stat-card">
           <span class="stat-icon">⚖️</span>
           <span class="stat-value" id="statAvgWeight">—</span>
-          <span class="stat-label">Avg Morning Weight</span>
+          <span class="stat-label">Avg Weight</span>
         </div>
         <div class="stat-card">
           <span class="stat-icon">✅</span>
@@ -155,6 +203,11 @@
           <span class="stat-value" id="statPending">0</span>
           <span class="stat-label">Pending</span>
         </div>
+        <div class="stat-card">
+          <span class="stat-icon">🏃</span>
+          <span class="stat-value" id="statAvgKm">—</span>
+          <span class="stat-label">Avg km/hr</span>
+        </div>
       </div>
 
       <section class="card">
@@ -163,8 +216,8 @@
           <p class="empty-state">Nothing to review yet!</p>
         </div>
       </section>
-
     </div>
+
   </main>
 
   <div class="toast" id="toast"></div>
@@ -179,7 +232,7 @@
       <div class="pin-icon">🔐</div>
       <h2 class="pin-title">Maya's PIN</h2>
       <p class="pin-subtitle" id="pinSubtitle">Enter your PIN to approve today's entry</p>
-      <div class="pin-dots" id="pinDots">
+      <div class="pin-dots" id="pinDotsWrap">
         <span class="pin-dot"></span>
         <span class="pin-dot"></span>
         <span class="pin-dot"></span>

@@ -2,69 +2,75 @@
    DAD'S HEALTH TRACKER — app.js
    ============================================================ */
 
-// ── Storage helpers ──────────────────────────────────────────
-const STORAGE_KEY = 'dadsHealthLog';
+// ── Storage ───────────────────────────────────────────────────
+const STORAGE_KEY  = 'dadsHealthLog';
+const CHEAT_KEY    = 'dadsCheatList';
+const APPROVAL_KEY = 'mayaApprovalDate';
+const MAYA_PIN     = '4144';
 
-function loadData() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch { return []; }
-}
-
-function saveData(entries) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-}
+function loadEntries()   { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))  || []; } catch { return []; } }
+function loadCheatList() { try { return JSON.parse(localStorage.getItem(CHEAT_KEY))    || []; } catch { return []; } }
+function saveEntries(e)  { localStorage.setItem(STORAGE_KEY, JSON.stringify(e)); }
+function saveCheatList(c){ localStorage.setItem(CHEAT_KEY, JSON.stringify(c)); }
 
 // ── State ─────────────────────────────────────────────────────
-let entries = loadData();
-let selectedMood = null;
-let moodChart = null;
+let entries   = loadEntries();
+let cheatList = loadCheatList();
+let selectedMood     = null;
+let exerciseVal      = null;
+let eatWellVal       = null;
+let junkVal          = null;
+let weightChart      = null;
+let moodChartInst    = null;
 
-// ── DOM refs ──────────────────────────────────────────────────
-const dadView       = document.getElementById('dadView');
-const familyView    = document.getElementById('familyView');
+// ── DOM ───────────────────────────────────────────────────────
 const todayDateEl   = document.getElementById('todayDate');
 const timeOfDayEl   = document.getElementById('timeOfDay');
 const streakEl      = document.getElementById('streakCount');
-const approvalList  = document.getElementById('approvalList');
 const submitBtn     = document.getElementById('submitLog');
 const submitMsg     = document.getElementById('submitMsg');
-const calorieInput  = document.getElementById('calories');
-const calorieBar    = document.getElementById('calorieBar');
-const calorieLabel  = document.getElementById('calorieLabel');
-const toast         = document.getElementById('toast');
+const kmInput       = document.getElementById('kmTime');
+const kmHint        = document.getElementById('kmHint');
 const moodPicker    = document.getElementById('moodPicker');
 const moodLabel     = document.getElementById('moodLabel');
-const chartEmpty    = document.getElementById('chartEmpty');
-
-// Stats
-const statAvgCal    = document.getElementById('statAvgCal');
+const approvalList  = document.getElementById('approvalList');
+const toast         = document.getElementById('toast');
+const pendingBanner = document.getElementById('pendingBanner');
 const statAvgWeight = document.getElementById('statAvgWeight');
 const statApproved  = document.getElementById('statApproved');
 const statPending   = document.getElementById('statPending');
+const statAvgKm     = document.getElementById('statAvgKm');
+const fabCheck      = document.getElementById('fabCheck');
+const pinOverlay    = document.getElementById('pinOverlay');
+const pinClose      = document.getElementById('pinClose');
+const pinSubtitle   = document.getElementById('pinSubtitle');
+const pinDots       = document.querySelectorAll('.pin-dot');
 
 // ── Init ──────────────────────────────────────────────────────
 function init() {
   setDateHeader();
   setGreeting();
+  setupTabs();
+  setupToggles();
   setupMoodPicker();
+  setupKmHint();
+  setupCheatDay();
   renderApprovals();
   updateStats();
   checkStreaks();
-  renderChart();
+  renderCharts();
+  checkPendingBanner();
 }
 
-// ── Date & Greeting ───────────────────────────────────────────
+// ── Date / Greeting ───────────────────────────────────────────
 function setDateHeader() {
-  const now = new Date();
-  const opts = { weekday: 'short', month: 'short', day: 'numeric' };
-  todayDateEl.textContent = now.toLocaleDateString('en-US', opts);
+  const now  = new Date();
+  todayDateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 function setGreeting() {
   const h = new Date().getHours();
-  const greet = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
-  timeOfDayEl.textContent = greet;
+  timeOfDayEl.textContent = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
 }
 
 function todayKey() {
@@ -72,105 +78,59 @@ function todayKey() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-// ── Streak ────────────────────────────────────────────────────
-function checkStreaks() {
-  const sorted = [...entries].sort((a,b) => b.date.localeCompare(a.date));
-  let streak = 0;
-  let cursor = new Date();
-  cursor.setHours(0,0,0,0);
-
-  for (const e of sorted) {
-    const d = new Date(e.date + 'T00:00:00');
-    const diff = Math.round((cursor - d) / 86400000);
-    if (diff === 0 || diff === 1) {
-      streak++;
-      cursor = d;
-    } else break;
-  }
-  streakEl.textContent = streak;
+// ── Tabs ──────────────────────────────────────────────────────
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      // Hide family view when switching tabs
+      document.getElementById('familyView').classList.remove('active');
+      fabCheck.classList.remove('family-active');
+      fabCheck.innerHTML = '&#10003;';
+      if (btn.dataset.tab === 'charts') renderCharts();
+    });
+  });
 }
 
-// ── Calorie Bar ───────────────────────────────────────────────
-const CALORIE_GOAL = 2000;
+// ── Toggle buttons (Yes/No) ───────────────────────────────────
+function setupToggles() {
+  setupToggleGroup('exerciseToggle', v => exerciseVal = v);
+  setupToggleGroup('eatWellToggle',  v => eatWellVal  = v);
+  setupToggleGroup('junkToggle',     v => junkVal     = v);
+}
 
-calorieInput.addEventListener('input', () => {
-  const val = parseInt(calorieInput.value) || 0;
-  const pct = Math.min((val / CALORIE_GOAL) * 100, 100);
-  calorieBar.style.width = pct + '%';
+function setupToggleGroup(id, setter) {
+  const group = document.getElementById(id);
+  group.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.toggle-btn').forEach(b => {
+        b.classList.remove('selected-yes', 'selected-no');
+      });
+      const val = btn.dataset.val;
+      btn.classList.add(val === 'yes' ? 'selected-yes' : 'selected-no');
+      setter(val);
+    });
+  });
+}
 
-  if (val === 0) {
-    calorieBar.style.background = 'transparent';
-    calorieLabel.textContent = '';
-  } else if (val < 1400) {
-    calorieBar.style.background = '#4a90d9';
-    calorieLabel.textContent = `${val} kcal — Under goal`;
-  } else if (val <= 2200) {
-    calorieBar.style.background = '#4caf7d';
-    calorieLabel.textContent = `${val} kcal — On track 🎯`;
-  } else {
-    calorieBar.style.background = '#e85454';
-    calorieLabel.textContent = `${val} kcal — Over goal (${val - CALORIE_GOAL} extra)`;
-  }
-});
-
-// ── Submit log ────────────────────────────────────────────────
-submitBtn.addEventListener('click', () => {
-  const weightMorning = parseFloat(document.getElementById('weightMorning').value);
-  const weightNight   = parseFloat(document.getElementById('weightNight').value);
-  const calories      = parseInt(document.getElementById('calories').value);
-  const notes         = document.getElementById('notes').value.trim();
-
-  if (!calories && !weightMorning && !weightNight) {
-    showToast('⚠️ Please fill in at least one field!');
-    return;
-  }
-
-  const today = todayKey();
-  const existing = entries.findIndex(e => e.date === today);
-
-  const entry = {
-    date: today,
-    weightMorning: weightMorning || null,
-    weightNight:   weightNight   || null,
-    calories:      calories      || null,
-    mood:          selectedMood  || null,
-    notes:         notes         || '',
-    status:        'pending',
-    submittedAt:   new Date().toISOString(),
-  };
-
-  if (existing >= 0) {
-    entries[existing] = { ...entries[existing], ...entry, status: 'pending' };
-    showToast('📝 Entry updated!');
-  } else {
-    entries.unshift(entry);
-    showToast('✅ Entry logged! Family notified.');
-  }
-
-  saveData(entries);
-  clearForm();
-  renderApprovals();
-  updateStats();
-  checkStreaks();
-  renderChart();
-  submitMsg.textContent = '✅ Submitted! Waiting for family review...';
-  setTimeout(() => submitMsg.textContent = '', 4000);
-});
-
-function clearForm() {
-  document.getElementById('weightMorning').value = '';
-  document.getElementById('weightNight').value   = '';
-  document.getElementById('calories').value      = '';
-  document.getElementById('notes').value         = '';
-  calorieBar.style.width = '0%';
-  calorieLabel.textContent = '';
-  selectedMood = null;
-  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-  moodLabel.textContent = 'Tap a face to log your mood';
+// ── KM hint (convert min → km/hr) ────────────────────────────
+function setupKmHint() {
+  kmInput.addEventListener('input', () => {
+    const mins = parseFloat(kmInput.value);
+    if (mins > 0) {
+      const kph = (60 / mins).toFixed(1);
+      kmHint.textContent = `That's ${kph} km/hr 🏃`;
+    } else {
+      kmHint.textContent = '';
+    }
+  });
 }
 
 // ── Mood Picker ───────────────────────────────────────────────
-const moodNames = { 1: 'Terrible 😞', 2: 'Bad 😕', 3: 'Okay 😐', 4: 'Good 🙂', 5: 'Great 😄' };
+const moodNames = { 1:'Terrible 😞', 2:'Bad 😕', 3:'Okay 😐', 4:'Good 🙂', 5:'Great 😄' };
 
 function setupMoodPicker() {
   document.querySelectorAll('.mood-btn').forEach(btn => {
@@ -183,64 +143,212 @@ function setupMoodPicker() {
   });
 }
 
-// ── Chart ─────────────────────────────────────────────────────
-function renderChart() {
-  const canvas = document.getElementById('moodChart');
-  const withData = [...entries].reverse().filter(e => e.mood || e.calories).slice(-14);
+// ── Streak ────────────────────────────────────────────────────
+function checkStreaks() {
+  const approvedDates = entries
+    .filter(e => e.status === 'approved')
+    .map(e => e.date)
+    .sort((a,b) => b.localeCompare(a));
 
-  if (withData.length === 0) {
+  let streak = 0;
+  let cursor = new Date();
+  cursor.setHours(0,0,0,0);
+
+  for (const dateStr of approvedDates) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const diff = Math.round((cursor - d) / 86400000);
+    if (diff === 0 || diff === 1) { streak++; cursor = d; }
+    else break;
+  }
+  streakEl.textContent = streak;
+}
+
+// ── Pending Banner ────────────────────────────────────────────
+function checkPendingBanner() {
+  const todayEntry = entries.find(e => e.date === todayKey());
+  if (todayEntry && todayEntry.status === 'pending') {
+    pendingBanner.style.display = 'block';
+  } else {
+    pendingBanner.style.display = 'none';
+  }
+}
+
+// ── Submit Log ────────────────────────────────────────────────
+submitBtn.addEventListener('click', () => {
+  const weightMorning = parseFloat(document.getElementById('weightMorning').value);
+  const kmTime        = parseFloat(kmInput.value);
+  const notes         = document.getElementById('notes').value.trim();
+
+  if (!weightMorning && !selectedMood && exerciseVal === null) {
+    showToast('⚠️ Please fill in at least one field!');
+    return;
+  }
+
+  const kmph = kmTime > 0 ? +(60 / kmTime).toFixed(1) : null;
+
+  const today   = todayKey();
+  const existing = entries.findIndex(e => e.date === today);
+
+  const entry = {
+    date:          today,
+    weightMorning: weightMorning || null,
+    kmTime:        kmTime        || null,
+    kmph:          kmph,
+    exercise:      exerciseVal,
+    eatWell:       eatWellVal,
+    junk:          junkVal,
+    mood:          selectedMood  || null,
+    notes:         notes         || '',
+    status:        'pending',
+    submittedAt:   new Date().toISOString(),
+  };
+
+  if (existing >= 0) {
+    entries[existing] = { ...entries[existing], ...entry, status: 'pending' };
+    showToast('📝 Entry updated — pending Maya\'s approval!');
+  } else {
+    entries.unshift(entry);
+    showToast('✅ Logged! Waiting for Maya to approve ⏳');
+  }
+
+  saveEntries(entries);
+  clearForm();
+  renderApprovals();
+  updateStats();
+  checkStreaks();
+  renderCharts();
+  checkPendingBanner();
+  submitMsg.textContent = '⏳ Pending Maya\'s approval...';
+  setTimeout(() => submitMsg.textContent = '', 4000);
+});
+
+function clearForm() {
+  document.getElementById('weightMorning').value = '';
+  kmInput.value = '';
+  kmHint.textContent = '';
+  document.getElementById('notes').value = '';
+  selectedMood = null;
+  exerciseVal = eatWellVal = junkVal = null;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected-yes','selected-no'));
+  moodLabel.textContent = 'Tap a face to log your mood';
+}
+
+// ── Cheat Day ─────────────────────────────────────────────────
+function setupCheatDay() {
+  renderCheatList();
+
+  document.getElementById('addCheatFood').addEventListener('click', addCheatFood);
+  document.getElementById('cheatFoodInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addCheatFood();
+  });
+  document.getElementById('clearCheatList').addEventListener('click', () => {
+    if (confirm('Clear the whole cheat list? Starting fresh for next week!')) {
+      cheatList = [];
+      saveCheatList(cheatList);
+      renderCheatList();
+      showToast('🗑️ Cheat list cleared!');
+    }
+  });
+}
+
+function addCheatFood() {
+  const input = document.getElementById('cheatFoodInput');
+  const val   = input.value.trim();
+  if (!val) return;
+  cheatList.push(val);
+  saveCheatList(cheatList);
+  renderCheatList();
+  input.value = '';
+  showToast('🍕 Added to cheat list!');
+}
+
+function renderCheatList() {
+  const ul = document.getElementById('cheatList');
+  if (cheatList.length === 0) {
+    ul.innerHTML = '<li class="empty-state">No cheat foods added yet — stay strong! 💪</li>';
+    return;
+  }
+  ul.innerHTML = cheatList.map((item, i) => `
+    <li class="cheat-item">
+      <span class="cheat-item-text">🍕 ${item}</span>
+      <button class="cheat-del" onclick="removeCheatItem(${i})">🗑️</button>
+    </li>
+  `).join('');
+}
+
+function removeCheatItem(i) {
+  cheatList.splice(i, 1);
+  saveCheatList(cheatList);
+  renderCheatList();
+}
+
+// ── Charts ────────────────────────────────────────────────────
+function renderCharts() {
+  renderWeightChart();
+  renderMoodChart();
+}
+
+function renderWeightChart() {
+  const canvas  = document.getElementById('weightChart');
+  const emptyEl = document.getElementById('weightChartEmpty');
+  const data    = [...entries].reverse().filter(e => e.weightMorning).slice(-20);
+
+  if (data.length < 2) {
     canvas.style.display = 'none';
-    chartEmpty.style.display = 'block';
+    emptyEl.style.display = 'block';
     return;
   }
   canvas.style.display = 'block';
-  chartEmpty.style.display = 'none';
+  emptyEl.style.display = 'none';
 
-  const labels  = withData.map(e => {
+  const labels = data.map(e => {
     const d = new Date(e.date + 'T00:00:00');
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   });
-  const calData  = withData.map(e => e.calories ? +(e.calories / 100).toFixed(1) : null);
-  const moodData = withData.map(e => e.mood || null);
+  const weights = data.map(e => e.weightMorning);
 
-  if (moodChart) moodChart.destroy();
+  if (weightChart) weightChart.destroy();
 
-  moodChart = new Chart(canvas, {
-    type: 'line',
+  weightChart = new Chart(canvas, {
+    type: 'bar',
     data: {
       labels,
-      datasets: [
-        {
-          label: 'Calories (÷100)',
-          data: calData,
-          borderColor: '#e8733a',
-          backgroundColor: 'rgba(232,115,58,0.12)',
-          pointBackgroundColor: '#e8733a',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 5,
-          spanGaps: true,
-        },
-        {
-          label: 'Mood (1–5)',
-          data: moodData,
-          borderColor: '#4caf7d',
-          backgroundColor: 'rgba(76,175,125,0.12)',
-          pointBackgroundColor: '#4caf7d',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 5,
-          spanGaps: true,
-        }
-      ]
+      datasets: [{
+        label: 'Weight (lbs)',
+        data: weights,
+        backgroundColor: weights.map((w, i) => {
+          if (i === 0) return 'rgba(74,144,217,0.6)';
+          return w <= weights[i-1] ? 'rgba(76,175,125,0.7)' : 'rgba(232,115,58,0.7)';
+        }),
+        borderColor: weights.map((w, i) => {
+          if (i === 0) return '#4a90d9';
+          return w <= weights[i-1] ? '#4caf7d' : '#e8733a';
+        }),
+        borderWidth: 2,
+        borderRadius: 6,
+      }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const i = ctx.dataIndex;
+              const w = weights[i];
+              if (i === 0) return `${w} lbs`;
+              const diff = (w - weights[i-1]).toFixed(1);
+              return `${w} lbs (${diff > 0 ? '+' : ''}${diff} lbs)`;
+            }
+          }
+        }
+      },
       scales: {
         y: {
-          beginAtZero: true,
+          beginAtZero: false,
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: { font: { family: 'Nunito', weight: '700' }, color: '#8a7a65' }
         },
@@ -253,7 +361,67 @@ function renderChart() {
   });
 }
 
-// ── Render Approvals (Family View) ────────────────────────────
+function renderMoodChart() {
+  const canvas  = document.getElementById('moodChart');
+  const emptyEl = document.getElementById('moodChartEmpty');
+  const data    = [...entries].reverse().filter(e => e.mood || e.kmph).slice(-14);
+
+  if (data.length < 2) {
+    canvas.style.display = 'none';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  emptyEl.style.display = 'none';
+
+  const labels   = data.map(e => {
+    const d = new Date(e.date + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  });
+  const moodData = data.map(e => e.mood || null);
+  const kmData   = data.map(e => e.kmph || null);
+
+  if (moodChartInst) moodChartInst.destroy();
+
+  moodChartInst = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Mood (1–5)',
+          data: moodData,
+          borderColor: '#4caf7d',
+          backgroundColor: 'rgba(76,175,125,0.1)',
+          pointBackgroundColor: '#4caf7d',
+          tension: 0.4, fill: true, pointRadius: 5, spanGaps: true,
+          yAxisID: 'yMood',
+        },
+        {
+          label: 'Speed (km/hr)',
+          data: kmData,
+          borderColor: '#4a90d9',
+          backgroundColor: 'rgba(74,144,217,0.1)',
+          pointBackgroundColor: '#4a90d9',
+          tension: 0.4, fill: true, pointRadius: 5, spanGaps: true,
+          yAxisID: 'yKm',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true, labels: { font: { family: 'Nunito', weight: '700' }, color: '#8a7a65' } } },
+      scales: {
+        yMood: { position: 'left',  min: 0, max: 5,  grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'Nunito', weight: '700' }, color: '#4caf7d' } },
+        yKm:   { position: 'right', min: 0,           grid: { display: false },             ticks: { font: { family: 'Nunito', weight: '700' }, color: '#4a90d9' } },
+        x:     { grid: { display: false }, ticks: { font: { family: 'Nunito', weight: '700' }, color: '#8a7a65' } }
+      }
+    }
+  });
+}
+
+// ── Approvals ─────────────────────────────────────────────────
 function renderApprovals() {
   if (entries.length === 0) {
     approvalList.innerHTML = '<p class="empty-state">Nothing to review yet!</p>';
@@ -265,13 +433,14 @@ function renderApprovals() {
     const dateStr = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
     const pills = [];
-    if (e.calories)      pills.push(`🍽️ ${e.calories} kcal`);
-    if (e.weightMorning) pills.push(`🌅 Morning: ${e.weightMorning} lbs`);
-    if (e.weightNight)   pills.push(`🌙 Night: ${e.weightNight} lbs`);
+    if (e.weightMorning) pills.push(`⚖️ ${e.weightMorning} lbs`);
+    if (e.kmph)          pills.push(`🏃 ${e.kmph} km/hr`);
+    if (e.exercise)      pills.push(`💪 Exercise: ${e.exercise}`);
+    if (e.eatWell)       pills.push(`🥗 Ate well: ${e.eatWell}`);
+    if (e.junk)          pills.push(`🍔 Junk food: ${e.junk}`);
     if (e.mood)          pills.push(`${['','😞','😕','😐','🙂','😄'][e.mood]} Mood: ${['','Terrible','Bad','Okay','Good','Great'][e.mood]}`);
 
     const statusChip = `<span class="status-chip ${e.status}">${e.status}</span>`;
-
     const actions = e.status === 'pending'
       ? `<div class="approval-actions">
            <button class="btn btn-approve" onclick="approveEntry(${idx})">✅ Approve</button>
@@ -292,74 +461,75 @@ function renderApprovals() {
           ${e.notes ? `<p class="notes-text">📝 "${e.notes}"</p>` : ''}
           ${actions}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
-// ── Approve / Reject ──────────────────────────────────────────
 function approveEntry(idx) {
   entries[idx].status = 'approved';
   entries[idx].reviewedAt = new Date().toISOString();
-  saveData(entries);
-  renderApprovals();
-  updateStats();
-  showToast('✅ Entry approved! Way to go, Dad!');
+  saveEntries(entries);
+  renderApprovals(); updateStats(); checkStreaks(); checkPendingBanner();
+  showToast('✅ Approved! Way to go, Dad! 🎉');
 }
 
 function rejectEntry(idx) {
   entries[idx].status = 'rejected';
   entries[idx].reviewedAt = new Date().toISOString();
-  saveData(entries);
-  renderApprovals();
-  updateStats();
-  showToast('❌ Entry flagged. Consider a chat with Dad.');
+  saveEntries(entries);
+  renderApprovals(); updateStats(); checkPendingBanner();
+  showToast('❌ Entry flagged.');
 }
 
 function resetEntry(idx) {
   entries[idx].status = 'pending';
   delete entries[idx].reviewedAt;
-  saveData(entries);
-  renderApprovals();
-  updateStats();
-  showToast('↩ Status reset to pending.');
+  saveEntries(entries);
+  renderApprovals(); updateStats(); checkPendingBanner();
+  showToast('↩ Reset to pending.');
 }
 
 // ── Stats ─────────────────────────────────────────────────────
 function updateStats() {
-  const withCal    = entries.filter(e => e.calories);
   const withWeight = entries.filter(e => e.weightMorning);
+  const withKm     = entries.filter(e => e.kmph);
   const approved   = entries.filter(e => e.status === 'approved').length;
   const pending    = entries.filter(e => e.status === 'pending').length;
 
-  statAvgCal.textContent    = withCal.length
-    ? Math.round(withCal.reduce((s,e) => s + e.calories, 0) / withCal.length)
-    : '—';
   statAvgWeight.textContent = withWeight.length
     ? (withWeight.reduce((s,e) => s + e.weightMorning, 0) / withWeight.length).toFixed(1)
     : '—';
-  statApproved.textContent  = approved;
-  statPending.textContent   = pending;
+  statAvgKm.textContent = withKm.length
+    ? (withKm.reduce((s,e) => s + e.kmph, 0) / withKm.length).toFixed(1)
+    : '—';
+  statApproved.textContent = approved;
+  statPending.textContent  = pending;
 }
 
-
-
-// ── PIN Modal & Fab ───────────────────────────────────────────
-const MAYA_PIN      = '4144';
-const APPROVAL_KEY  = 'mayaApprovalDate';
-const fabCheck      = document.getElementById('fabCheck');
-const pinOverlay    = document.getElementById('pinOverlay');
-const pinClose      = document.getElementById('pinClose');
-const pinSubtitle   = document.getElementById('pinSubtitle');
-const pinDots       = document.querySelectorAll('.pin-dot');
-
-let pinEntry = '';
+// ── FAB + PIN ─────────────────────────────────────────────────
+let pinEntry    = '';
+let fabIsFamily = false;
 
 function alreadyApprovedToday() {
   return localStorage.getItem(APPROVAL_KEY) === todayKey();
 }
 
 fabCheck.addEventListener('click', () => {
+  if (fabIsFamily) {
+    // Switch back to daily view
+    document.getElementById('familyView').classList.remove('active');
+    document.querySelectorAll('.tab-content').forEach(t => {
+      if (t.id === 'tab-daily') t.classList.add('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === 'daily');
+    });
+    fabIsFamily = false;
+    fabCheck.classList.remove('family-active');
+    fabCheck.innerHTML = '&#10003;';
+    return;
+  }
+
   if (alreadyApprovedToday()) {
     showToast('✅ Already approved today! Great job, Dad!');
     return;
@@ -387,13 +557,9 @@ function closePinModal() {
 document.querySelectorAll('.pin-key').forEach(key => {
   key.addEventListener('click', () => {
     const val = key.dataset.val;
-    if (val === 'clear') {
-      pinEntry = '';
-    } else if (val === 'del') {
-      pinEntry = pinEntry.slice(0, -1);
-    } else if (pinEntry.length < 4) {
-      pinEntry += val;
-    }
+    if (val === 'clear')       { pinEntry = ''; }
+    else if (val === 'del')    { pinEntry = pinEntry.slice(0, -1); }
+    else if (pinEntry.length < 4) { pinEntry += val; }
     updateDots();
     if (pinEntry.length === 4) checkPin();
   });
@@ -408,36 +574,36 @@ function updateDots() {
 
 function checkPin() {
   if (pinEntry === MAYA_PIN) {
-    // ✅ Correct!
     pinDots.forEach(d => { d.classList.remove('filled'); d.classList.add('success'); });
     pinSubtitle.textContent = '✅ Approved! Great job, Dad! 🎉';
     pinSubtitle.className = 'pin-subtitle success';
 
-    // Mark today as approved
     localStorage.setItem(APPROVAL_KEY, todayKey());
 
-    // Approve today's entry in the log if it exists
     const todayIdx = entries.findIndex(e => e.date === todayKey());
     if (todayIdx >= 0) {
       entries[todayIdx].status = 'approved';
       entries[todayIdx].reviewedAt = new Date().toISOString();
-      saveData(entries);
+      saveEntries(entries);
       updateStats();
       renderApprovals();
+      checkPendingBanner();
     }
 
-    // Bump streak by 1 for Maya's approval
-    const current = parseInt(streakEl.textContent) || 0;
-    streakEl.textContent = current + 1;
+    checkStreaks();
 
-    // Close modal after a short celebration pause
     setTimeout(() => {
       closePinModal();
-      showToast('🎉 Maya approved! +1 streak for Dad!');
+      // Open family view
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById('familyView').classList.add('active');
+      fabIsFamily = true;
+      fabCheck.classList.add('family-active');
+      fabCheck.innerHTML = '&#8592;';
+      showToast('🎉 Maya approved! Streak updated!');
     }, 1400);
 
   } else {
-    // ❌ Wrong PIN
     pinDots.forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
     pinSubtitle.textContent = 'Wrong PIN, try again!';
     pinSubtitle.className = 'pin-subtitle error';
@@ -450,7 +616,7 @@ function checkPin() {
   }
 }
 
-
+// ── Toast ─────────────────────────────────────────────────────
 let toastTimer;
 function showToast(msg) {
   toast.textContent = msg;
