@@ -191,7 +191,7 @@ function setupSubmit() {
     const kmTime        = parseFloat(kmInput.value);
     const notes         = document.getElementById('notes').value.trim();
 
-    if (!weightMorning && !selectedMood && exerciseVal === null && !document.getElementById("kmTime").value) {
+    if (!weightMorning && !selectedMood && exerciseVal === null) {
       showToast('⚠️ Please fill in at least one field!');
       return;
     }
