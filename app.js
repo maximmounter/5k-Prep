@@ -83,6 +83,7 @@ function init() {
   setupPinModal();
   setupSubmit();
   setupWeightOnly();
+  fetchGogginsQuote();
   listenToEntries();
   listenToCheatList();
 }
@@ -638,6 +639,59 @@ function showToast(msg) {
   toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ── Daily Goggins Quote ───────────────────────────────────────
+async function fetchGogginsQuote() {
+  const quoteEl = document.getElementById('gogginsQuote');
+  const QUOTE_KEY      = 'gogginsQuote';
+  const QUOTE_DATE_KEY = 'gogginsQuoteDate';
+
+  // Reuse today's quote if already fetched
+  const savedDate  = localStorage.getItem(QUOTE_DATE_KEY);
+  const savedQuote = localStorage.getItem(QUOTE_KEY);
+  if (savedDate === todayKey() && savedQuote) {
+    quoteEl.textContent = savedQuote;
+    return;
+  }
+
+  quoteEl.classList.add('loading');
+  quoteEl.textContent = 'Loading your motivation...';
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 120,
+        messages: [{
+          role: 'user',
+          content: `Generate one short, powerful motivational quote in the raw, no-excuses style of David Goggins. 
+It should be intense, direct, and push someone to get up and work hard on their health and fitness. 
+Make it feel personal and visceral — like he's talking directly to you. 
+Keep it under 3 sentences. Do not use quotation marks. Do not include his name. Just the quote itself.
+Today's date is ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} so make it feel relevant to the day.`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const quote = data.content?.[0]?.text?.trim();
+
+    if (quote) {
+      quoteEl.classList.remove('loading');
+      quoteEl.textContent = quote;
+      localStorage.setItem(QUOTE_KEY, quote);
+      localStorage.setItem(QUOTE_DATE_KEY, todayKey());
+    } else {
+      throw new Error('No quote returned');
+    }
+  } catch (err) {
+    quoteEl.classList.remove('loading');
+    quoteEl.textContent = "You are not who you think you are. You are capable of so much more — now get up and prove it.";
+    console.error('Quote fetch failed:', err);
+  }
 }
 
 // ── Run ───────────────────────────────────────────────────────
