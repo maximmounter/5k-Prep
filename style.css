@@ -222,6 +222,46 @@ input:focus, textarea:focus {
 .mood-btn.selected { border-color: var(--primary); background: var(--primary-light); transform: scale(1.2); box-shadow: 0 4px 12px rgba(232,115,58,0.25); }
 .mood-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-top: 6px; display: block; min-height: 18px; }
 
+.weight-quick-card {
+  border: 2px solid var(--primary);
+  background: linear-gradient(135deg, #fff9f5 0%, #fff 100%);
+}
+
+.card-hint {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  margin-top: -8px;
+}
+
+.card-title-hint {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-main);
+}
+
+.btn-weight-only {
+  width: 100%;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  padding: 13px;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-weight-only:hover { background: var(--primary); color: white; transform: translateY(-1px); }
+.btn-weight-only:active { transform: translateY(0); }
+
 /* ============================
    PENDING
    ============================ */

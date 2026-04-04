@@ -47,18 +47,23 @@
         </div>
       </section>
 
+      <!-- QUICK WEIGHT CARD -->
+      <section class="card weight-quick-card">
+        <h3 class="card-title">🌅 Morning Weight</h3>
+        <p class="card-hint">Log your weight first thing — fill in the rest later!</p>
+        <div class="input-wrap" style="margin-bottom:14px">
+          <input type="number" id="weightMorning" placeholder="e.g. 185" step="0.1" min="50" max="500"/>
+          <span class="unit">lbs</span>
+        </div>
+        <button class="btn btn-weight-only" id="submitWeightOnly">🌅 Log Weight Now</button>
+        <p class="submit-hint" id="weightMsg"></p>
+      </section>
+
+      <!-- FULL DAILY LOG CARD -->
       <section class="card log-form">
-        <h3 class="card-title">📋 Today's Log</h3>
+        <h3 class="card-title">📋 Full Day Log <span class="card-title-hint">(fill in at end of day)</span></h3>
 
         <div class="form-grid">
-
-          <div class="form-group full-width">
-            <label for="weightMorning"><span class="label-icon">🌅</span> Morning Weight</label>
-            <div class="input-wrap">
-              <input type="number" id="weightMorning" placeholder="e.g. 185" step="0.1" min="50" max="500"/>
-              <span class="unit">lbs</span>
-            </div>
-          </div>
 
           <div class="form-group full-width">
             <label for="kmTime"><span class="label-icon">🏃</span> 1 km Run Time</label>
@@ -113,7 +118,7 @@
         </div>
 
         <div class="pending-notice">⏳ Entries are <strong>pending</strong> until Maya approves with her PIN ✓</div>
-        <button class="btn btn-primary" id="submitLog">Submit Today's Log</button>
+        <button class="btn btn-primary" id="submitLog">Submit Full Day Log</button>
         <p class="submit-hint" id="submitMsg"></p>
       </section>
 
@@ -131,7 +136,6 @@
           <p>Add all the foods you saved up this week. You earned it!</p>
         </div>
       </section>
-
       <section class="card">
         <h3 class="card-title">🧾 This Week's Cheat List</h3>
         <div class="cheat-input-row">
@@ -153,7 +157,6 @@
         <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
         <p id="weightChartEmpty" class="empty-state">Log a few days to see your weight chart!</p>
       </section>
-
       <section class="card">
         <h3 class="card-title">😊 Mood vs. Running Pace</h3>
         <p class="chart-subtitle">Feel better when you run faster!</p>
@@ -170,7 +173,6 @@
           <p>Review and approve Dad's daily entries here.</p>
         </div>
       </section>
-
       <div class="stats-row">
         <div class="stat-card">
           <span class="stat-icon">⚖️</span>
@@ -193,7 +195,6 @@
           <span class="stat-label">Avg km/hr</span>
         </div>
       </div>
-
       <section class="card">
         <h3 class="card-title">🗂️ Entries to Review</h3>
         <div id="approvalList" class="approval-list">

@@ -50,6 +50,8 @@ const todayDateEl   = document.getElementById('todayDate');
 const timeOfDayEl   = document.getElementById('timeOfDay');
 const streakEl      = document.getElementById('streakCount');
 const submitBtn     = document.getElementById('submitLog');
+const submitWeightOnly = document.getElementById('submitWeightOnly');
+const weightMsg     = document.getElementById('weightMsg');
 const submitMsg     = document.getElementById('submitMsg');
 const kmInput       = document.getElementById('kmTime');
 const kmHint        = document.getElementById('kmHint');
@@ -80,6 +82,7 @@ function init() {
   setupFab();
   setupPinModal();
   setupSubmit();
+  setupWeightOnly();
   listenToEntries();
   listenToCheatList();
 }
@@ -191,7 +194,7 @@ function setupSubmit() {
     const kmTime        = parseFloat(kmInput.value);
     const notes         = document.getElementById('notes').value.trim();
 
-    if (!weightMorning && !selectedMood && exerciseVal === null) {
+    if (!weightMorning && !selectedMood && exerciseVal === null && !document.getElementById("kmTime").value) {
       showToast('⚠️ Please fill in at least one field!');
       return;
     }
@@ -244,6 +247,55 @@ function clearForm() {
   document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
   document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected-yes','selected-no'));
   moodLabel.textContent = 'Tap a face to log your mood';
+}
+
+// ── Weight Only Submit ────────────────────────────────────────
+function setupWeightOnly() {
+  submitWeightOnly.addEventListener('click', async () => {
+    const weightMorning = parseFloat(document.getElementById('weightMorning').value);
+    if (!weightMorning) {
+      showToast('⚠️ Please enter your morning weight!');
+      return;
+    }
+
+    const today    = todayKey();
+    const existing = entries.find(e => e.date === today);
+
+    showSync();
+    try {
+      if (existing) {
+        // Update just the weight on existing entry
+        await updateDoc(doc(db, "entries", existing.id), {
+          weightMorning,
+          submittedAt: new Date().toISOString(),
+          status: existing.status === 'approved' ? 'approved' : 'pending',
+        });
+        showToast('⚖️ Weight updated!');
+      } else {
+        // Create a new entry with just the weight
+        await addDoc(entriesCol, {
+          date:          today,
+          weightMorning,
+          kmTime:        null,
+          kmph:          null,
+          exercise:      null,
+          eatWell:       null,
+          junk:          null,
+          mood:          null,
+          notes:         '',
+          status:        'pending',
+          submittedAt:   new Date().toISOString(),
+        });
+        showToast('🌅 Morning weight logged!');
+      }
+      document.getElementById('weightMorning').value = '';
+      weightMsg.textContent = '✅ Weight saved! Fill in the rest later.';
+      setTimeout(() => weightMsg.textContent = '', 4000);
+    } catch (err) {
+      showToast('❌ Error saving. Check your connection.');
+      console.error(err);
+    }
+  });
 }
 
 // ── Pending banner ────────────────────────────────────────────
