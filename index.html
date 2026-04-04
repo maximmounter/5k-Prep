@@ -52,7 +52,6 @@
 
         <div class="form-grid">
 
-          <!-- Morning Weight -->
           <div class="form-group full-width">
             <label for="weightMorning"><span class="label-icon">🌅</span> Morning Weight</label>
             <div class="input-wrap">
@@ -61,7 +60,6 @@
             </div>
           </div>
 
-          <!-- KM Run Time -->
           <div class="form-group full-width">
             <label for="kmTime"><span class="label-icon">🏃</span> 1 km Run Time</label>
             <div class="input-wrap">
@@ -71,7 +69,6 @@
             <span class="field-hint" id="kmHint"></span>
           </div>
 
-          <!-- Did you exercise? -->
           <div class="form-group full-width">
             <label><span class="label-icon">💪</span> Did you exercise today?</label>
             <div class="toggle-group" id="exerciseToggle">
@@ -80,7 +77,6 @@
             </div>
           </div>
 
-          <!-- Did you eat well? -->
           <div class="form-group full-width">
             <label><span class="label-icon">🥗</span> Did you eat well today?</label>
             <div class="toggle-group" id="eatWellToggle">
@@ -89,7 +85,6 @@
             </div>
           </div>
 
-          <!-- Did you eat junk food? -->
           <div class="form-group full-width">
             <label><span class="label-icon">🍔</span> Did you eat junk food today?</label>
             <div class="toggle-group" id="junkToggle">
@@ -98,7 +93,6 @@
             </div>
           </div>
 
-          <!-- Mood -->
           <div class="form-group full-width">
             <label><span class="label-icon">😊</span> How do you feel today?</label>
             <div class="mood-picker" id="moodPicker">
@@ -111,7 +105,6 @@
             <span class="mood-label" id="moodLabel">Tap a face to log your mood</span>
           </div>
 
-          <!-- Notes -->
           <div class="form-group full-width">
             <label for="notes"><span class="label-icon">📝</span> Notes (optional)</label>
             <textarea id="notes" placeholder="Anything to note about today?" rows="3"></textarea>
@@ -124,7 +117,6 @@
         <p class="submit-hint" id="submitMsg"></p>
       </section>
 
-      <!-- Recent pending banner -->
       <div id="pendingBanner" class="pending-banner" style="display:none">
         <span>⏳ Today's entry is waiting for Maya's approval</span>
       </div>
@@ -133,7 +125,6 @@
 
     <!-- ===== CHEAT DAY TAB ===== -->
     <div id="tab-cheat" class="tab-content">
-
       <section class="greeting-card cheat-greeting">
         <div class="greeting-text">
           <h2>🍕 Saturday Cheat Day!</h2>
@@ -152,33 +143,26 @@
         </ul>
         <button class="btn btn-ghost" id="clearCheatList" style="margin-top:12px;width:100%">🗑️ Clear List (new week)</button>
       </section>
-
     </div>
 
     <!-- ===== CHARTS TAB ===== -->
     <div id="tab-charts" class="tab-content">
-
       <section class="card">
         <h3 class="card-title">⚖️ Weight Over Time</h3>
         <p class="chart-subtitle">Morning weight — going down is the goal!</p>
-        <div class="chart-wrap">
-          <canvas id="weightChart"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
         <p id="weightChartEmpty" class="empty-state">Log a few days to see your weight chart!</p>
       </section>
 
       <section class="card">
         <h3 class="card-title">😊 Mood vs. Running Pace</h3>
         <p class="chart-subtitle">Feel better when you run faster!</p>
-        <div class="chart-wrap">
-          <canvas id="moodChart"></canvas>
-        </div>
+        <div class="chart-wrap"><canvas id="moodChart"></canvas></div>
         <p id="moodChartEmpty" class="empty-state">Log a few days to see your mood chart!</p>
       </section>
-
     </div>
 
-    <!-- ===== FAMILY VIEW (hidden, toggled by fab) ===== -->
+    <!-- ===== FAMILY VIEW ===== -->
     <div id="familyView" class="view">
       <section class="greeting-card family-greeting">
         <div class="greeting-text">
@@ -221,6 +205,7 @@
   </main>
 
   <div class="toast" id="toast"></div>
+  <div class="sync-indicator" id="syncIndicator">☁️ Syncing...</div>
 
   <!-- FLOATING CHECKMARK BUTTON -->
   <button class="fab-check" id="fabCheck" title="Maya's Approval">&#10003;</button>
@@ -255,6 +240,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
